@@ -6,15 +6,11 @@
 
     // const counter = useCounterStore();
 
-    import { useCounterStore } from '../stores/count1';
-
     interface User {
         name: string;
         email: string;
         phone_number: string;
     }
-
-    const counter = useCounterStore();
 
    const datas = ref<User[] | null>(null);
     const error = ref<Error | null>(null);
@@ -32,22 +28,6 @@
         }
     };
 
-    const number = ref(0);
-    const data = ref(0);
-
-    const submitToChild = async () => {
-        data.value = Number(number.value);
-
-        await counter.setName('John Doe');
-    }
-    const handleUpdate = (value: string) => {
-        console.log(value);
-    }
-
-    const CountNumber = () => {
-        counter.increment();
-    }
-
     onMounted(async () => {
        await fetchData();
     });
@@ -55,28 +35,15 @@
 
 <template>
     <div class="container">
-    <div class="parent">
-        <p v-if="error">{{ error }}</p>
-        <div v-for="(item, indx) in datas" :key="indx">
-            <p>
-                {{ item.name }} - {{ item.email }} - {{ item.phone_number }}
-            </p>
+        <div class="parent">
+            <p v-if="error">{{ error }}</p>
+            <div v-for="(item, indx) in datas" :key="indx">
+                <p>
+                    {{ item.name }} - {{ item.email }} - {{ item.phone_number }}
+                </p>
+            </div>
         </div>
-        <hr>
-        <input type="text" v-model="number" placeholder="Number..." />
-        <br><br>
-        <button @click="submitToChild">Submit</button>
-        <button @click="CountNumber">Count: {{ counter.count }}</button>
-        <p>Double: {{ counter.doubleCount }}</p>
-        <p>Name: {{ counter.name }}</p>
-    </div>
-    <br>
-    <hr>
-    <br>
-    <div>
-        Children:
-        <ShowCardmponent :msg="data" @update="handleUpdate"/>
-    </div>
+        <ShowCardmponent/>
     </div>
 </template>
 
