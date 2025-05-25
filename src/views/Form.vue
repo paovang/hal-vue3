@@ -1,7 +1,8 @@
 <script setup lang="ts">
     import { reactive, onMounted, ref } from 'vue';
     import axios from 'axios';
-    
+    import CreateComponent from '../components/Modal/User/Create.Component.vue'
+    import UpdateComponent from '../components/Modal/User/Update.Component.vue'
 
     interface User {
         id: string;
@@ -15,19 +16,16 @@
             users: []
         }
     );
+    const isLoading = ref(true);
 
-    const form = reactive({
-        id: '',
-        name: '',
-        email: '',
-        phone_number: ''
-    });
     const url = 'https://67e656b06530dbd3110f8cd8.mockapi.io/pao/users';   
     const fetchData = async () => {
         try {
             const response = await axios.get(url); 
             state.users = response.data;
+            isLoading.value = false;
         } catch (error) {
+            isLoading.value = true;
             console.error('Error fetching data:', error);
         }
     }
@@ -36,54 +34,24 @@
         await fetchData();
     });
 
-
-    const createData = async () => {
-        try {
-            const response = await axios.post(url, {
-                name: form.name,
-                email: form.email,
-                phone_number: form.phone_number
-            });
-            state.users.push(response.data);
-            // await fetchData();
-
-            form.name = '';
-            form.email = '';
-            form.phone_number = '';
-        } catch (error) {
-            console.error('Error creating data:', error);
-        }
-    }
-
     const btnSubmit = ref(true)
+       const setDataEdit = reactive({
+        id: '',
+        name: '',
+        email: '',
+        phone_number: ''
+    })
+
+    const openModalUpdate = ref<boolean>(false);
 
     const setValueEdit = (id: string) => {
         const user = state.users.find(user => user.id === id); 
         if (user) {
-            form.id = user.id;
-            form.name = user.name;
-            form.email = user.email;
-            form.phone_number = user.phone_number;
-            btnSubmit.value = false; // Change button to Update
-        }
-    }
-
-    const updateData = async () => {
-        try {
-            const response = await axios.put(`${url}/${form.id}`, {
-                name: form.name,
-                email: form.email,
-                phone_number: form.phone_number
-            });
-           
-            await fetchData();
-
-            form.name = '';
-            form.email = '';
-            form.phone_number = '';
-            btnSubmit.value = true; // Reset button to Submit
-        } catch (error) {
-            console.error('Error updating data:', error);
+            setDataEdit.id = user.id;
+            setDataEdit.name = user.name;
+            setDataEdit.email = user.email;
+            setDataEdit.phone_number = user.phone_number;
+            openModalUpdate.value = true;
         }
     }
 
@@ -95,42 +63,90 @@
             await updateData();
         }
     }
+
+    const onDelete = async (id: string) => {
+        try {
+            await axios.delete(`${url}/${id}`);
+            state.users = state.users.filter(user => user.id !== id);
+        } catch (error) {
+            console.error('Error deleting data:', error);
+        }
+    }
+
+    const columns = [
+        {
+            title: 'Name',
+            dataIndex: 'name',
+            key: 'name',
+        },
+        {
+            title: 'Email',
+            dataIndex: 'email',
+            key: 'email',
+        },
+        {
+            title: 'Phone Number',
+            dataIndex: 'phone_number',
+            key: 'phone_number',
+        },
+        {
+            title: 'Operation',
+            dataIndex: '',
+            key: 'operation',
+        },
+    ]
+
+    const openModalCreate = ref<boolean>(false);
+
+    const handleAdd = () => {
+        openModalCreate.value = true;
+    }
+
+    const createSuccess = async (e: Event) => {
+        await fetchData();
+        openModalCreate.value = e;
+    }
+
+    const updateSuccess = async (e: Event) => {
+         await fetchData();
+        openModalUpdate.value = e;
+    }
 </script>
 
 <template>
-    <div>
-        <h1>Form Create</h1>
-        <form @submit.prevent="handleSubmit">
-            <div>
-                <label for="name">Name:</label>
-                <input type="text" id="name" v-model="form.name" required>
-            </div>
-            <div>
-                <label for="email">Email:</label>
-                <input type="email" id="email" v-model="form.email" required>
-            </div>
-            <div>
-                <label for="phone_number">Phone Number:</label>
-                <input type="text" id="phone_number" v-model="form.phone_number" required>
-            </div>
-            <button type="submit" v-if="btnSubmit">Submit</button>
-            <button type="submit" v-else>Update</button>
-        </form>
+    <div style="text-align: left;">
+        <div class="title">
+            <h2>List Users</h2>
+            <a-button class="editable-add-btn" style="margin-bottom: 15px" @click="handleAdd">Create User</a-button>
+        </div>
 
-        <div>
-            <h1>Users:</h1>  
-            <ul>
-                <li v-for="(user, index) in state.users" :key="index">
-                    {{ index+1 }}. {{ user.name }} - {{ user.email }} - {{ user.phone_number }}
+        <a-table :dataSource="state.users" :columns="columns" :loading="isLoading" style="margin-top: 20px;">
+              <template #bodyCell="{ column, record }">
+                <template v-if="column.key === 'operation'">
                     <span>
-                        <button @click="setValueEdit(user.id)">Edit</button>
-                    </span>
-                </li>
-            </ul>
-            </div>
+                        <a @click="setValueEdit(record.id)">Edit</a>
+                    </span> |
+                    <a-popconfirm
+                        v-if="state.users.length"
+                        title="Sure to delete?"
+                        @confirm="onDelete(record.id)"
+                    >
+                    <a>Delete</a>
+                    </a-popconfirm>
+                </template>
+              </template>
+        </a-table>
+        
+        <CreateComponent :isOpen="openModalCreate" @isClose="createSuccess"/>
+        <UpdateComponent :isOpen="openModalUpdate" @isClose="updateSuccess" :data="setDataEdit"/>
     </div>
 </template>
 
 <style lang="scss" scoped>
-
+    .title {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        justify-items: center;
+    }
 </style>

@@ -25,6 +25,7 @@ Learn more about the recommended Project Setup and IDE Support in the [Vue Docs 
     - 81 - 90 = B
     - 91 - 100 = A 
     - ຖ້າຫລາຍກວ່າ 100 = ບໍ່ສາມາດຕັດເກຮດໄດ້
+    
 3. ສ້າງປຸ່ມ Btn ເເລ້ວກຳນົດໃຫ້ປຸ່ມມີ background = ສີເເດງ ເເລ້ວຖ້າກົດໃສປຸ່ມ ໃຫ້ປ່ຽນ background = ສີດຳ
 4. ມີຂໍ້ມູນນັກສຶກສາ
     const students = reactive([

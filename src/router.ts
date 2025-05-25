@@ -3,6 +3,7 @@ import UserPage from "./views/user.vue";
 import TestPage from "./views/Test.vue";
 import FormInput from "./views/Form.vue";
 import Test1Page from "./views/Test1.vue";
+import WorkPage from "./views/Work.vue";
 
 const routes = [
   {
@@ -26,6 +27,10 @@ const routes = [
   {
     path: "/test1",
     component: Test1Page,
+  },
+  {
+    path: "/work",
+    component: WorkPage,
   },
 ];
 
